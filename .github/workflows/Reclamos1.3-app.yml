@@ -65,4 +65,4 @@ jobs:
 
       - name: Run script
         run: |
-          python "Reclamos/Reclamos1.3.py"
+          python "ReclamosAI/Reclamos1.3.py"
