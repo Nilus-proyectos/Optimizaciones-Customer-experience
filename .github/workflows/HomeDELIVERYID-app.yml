@@ -3,7 +3,7 @@ name: HomeDELIVERYID
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 12 * * *"  # 09:00 ART (UTC-3)
+    - cron: "0 12 * * *"  # tener en cuenta las 3 hs porque es Argentina
 
 permissions:
   contents: read
@@ -32,7 +32,8 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f "HomeDelivery/RequerimentsHomeDelivery.txt" ]; then
+          # Si tienes requirements.txt en la carpeta del script, úsalo; si no, instala dependencias básicas
+          if [ -f "HomeDelivery/requirements.txt" ]; then
             pip install -r HomeDelivery/RequerimentsHomeDelivery.txt
           else
             pip install python-dotenv slack_sdk selenium webdriver_manager gspread oauth2client pandas
@@ -44,41 +45,12 @@ jobs:
           ${{ secrets.ENV_HOMEDELIVERY }}
           ENV
 
-      - name: Check Slack env presence (no imprime secretos)
-        run: |
-          set -a; source .env; set +a
-          if [ -n "$SLACK_TOKEN" ]; then echo "SLACK_TOKEN presente (len=${#SLACK_TOKEN})"; else echo "::error::SLACK_TOKEN faltante"; fi
-          if [ -n "$SLACK_CHANNEL_ID_NOTIFICACIONES" ]; then echo "Canal presente: ${SLACK_CHANNEL_ID_NOTIFICACIONES}"; else echo "::error::SLACK_CHANNEL_ID_NOTIFICACIONES faltante"; fi
-
-      - name: Slack auth test
-        env:
-          SSL_CERT_PATH: /etc/ssl/certs/ca-certificates.crt
-        run: |
-          set -a; source .env; set +a
-          python - <<'PY'
-          import os, ssl
-          from slack_sdk import WebClient
-          from slack_sdk.errors import SlackApiError
-          token = os.getenv('SLACK_TOKEN')
-          channel = os.getenv('SLACK_CHANNEL_ID_NOTIFICACIONES')
-          print('Channel:', channel)
-          try:
-              client = WebClient(token=token, ssl=ssl.create_default_context(cafile='/etc/ssl/certs/ca-certificates.crt'))
-              resp = client.auth_test()
-              print('auth_test OK:', resp.data)
-          except SlackApiError as e:
-              print('SlackApiError:', e.response.get('error'))
-              raise
-          except Exception as e:
-              print('Exception:', repr(e))
-              raise
-          PY
-
       - name: Write Google credentials JSON from secret
         env:
           GSERVICE_CREDENTIALS_JSON_CONTENT: ${{ secrets.GSERVICE_CREDENTIALS_JSON_CONTENT }}
         run: |
           set -euo pipefail
+          # variables del .env para leer GSERVICE_CREDENTIALS_JSON
           set -a
           source .env
           set +a
@@ -96,6 +68,7 @@ jobs:
 
       - name: Run script
         env:
+          # Usa el bundle de certificados del runner (no es sensible)
           SSL_CERT_PATH: /etc/ssl/certs/ca-certificates.crt
         run: |
           python HomeDelivery/HomeDELIVERYID.py
