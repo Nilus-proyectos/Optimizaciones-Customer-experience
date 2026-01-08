@@ -53,11 +53,14 @@ jobs:
           source .env
           set +a
 
-          # Si la ruta es absoluta, úsala tal cual; si es relativa, colócala dentro de Prevencion/
+          # Directorio del script (p.ej., 'Prevención')
+          SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+
+          # Si la ruta es absoluta, úsala tal cual; si es relativa, colócala bajo la carpeta del script
           if [[ "$GSERVICE_CREDENTIALS_JSON" = /* ]]; then
             DEST="$GSERVICE_CREDENTIALS_JSON"
           else
-            DEST="Prevencion/$GSERVICE_CREDENTIALS_JSON"
+            DEST="$SCRIPT_DIR/$GSERVICE_CREDENTIALS_JSON"
           fi
 
           echo "Escribiendo credenciales en: $DEST"
