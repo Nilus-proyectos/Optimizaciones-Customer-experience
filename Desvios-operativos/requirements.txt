@@ -1,0 +1,7 @@
+python-dotenv
+pandas
+selenium
+webdriver_manager
+gspread
+oauth2client
+requests
