@@ -49,18 +49,15 @@ jobs:
           GSERVICE_CREDENTIALS_JSON_CONTENT: ${{ secrets.GSERVICE_CREDENTIALS_JSON_CONTENT }}
         run: |
           set -euo pipefail
+          # variables del .env para leer GSERVICE_CREDENTIALS_JSON
           set -a
           source .env
           set +a
 
-          # Directorio del script (p.ej., 'Prevención')
-          SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
-
-          # Si la ruta es absoluta, úsala tal cual; si es relativa, colócala bajo la carpeta del script
           if [[ "$GSERVICE_CREDENTIALS_JSON" = /* ]]; then
             DEST="$GSERVICE_CREDENTIALS_JSON"
           else
-            DEST="$SCRIPT_DIR/$GSERVICE_CREDENTIALS_JSON"
+            DEST="HomeDelivery/$GSERVICE_CREDENTIALS_JSON"
           fi
 
           echo "Escribiendo credenciales en: $DEST"
