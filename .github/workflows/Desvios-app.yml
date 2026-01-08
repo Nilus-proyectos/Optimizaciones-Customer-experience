@@ -50,24 +50,30 @@ jobs:
           GSERVICE_CREDENTIALS_JSON_CONTENT: ${{ secrets.GSERVICE_CREDENTIALS_JSON_CONTENT }}
         run: |
           set -euo pipefail
-          SCRIPT_DIR="Desvios-operativos"
-          JSON_FILENAME="charged-muse-426100-k1-372cb941772b.json"
-      
+          SCRIPT_DIR="${SCRIPT_DIR:-Desvios-operativos}"
+          JSON_FILENAME="${JSON_FILENAME:-charged-muse-426100-k1-372cb941772b.json}"
+
           if [ -z "${GSERVICE_CREDENTIALS_JSON_CONTENT:-}" ]; then
             echo "::error::GSERVICE_CREDENTIALS_JSON_CONTENT vacío o no definido."
             exit 1
           fi
-      
+
           DEST="$SCRIPT_DIR/$JSON_FILENAME"
           echo "Escribiendo credenciales en: $DEST"
           mkdir -p "$(dirname "$DEST")"
           printf '%s' "${GSERVICE_CREDENTIALS_JSON_CONTENT}" > "$DEST"
           chmod 600 "$DEST"
-      
+
+          # Exporta la ruta para el script (relativa al directorio del script)
+          echo "GSERVICE_CREDENTIALS_JSON=$JSON_FILENAME" >> "$GITHUB_ENV"
+
           echo "Verificación:"
           ls -la "$(dirname "$DEST")"
           test -f "$DEST" || (echo "::error::JSON no encontrado en $DEST" && exit 1)
 
       - name: Run script
+        env:
+          # También pasa el contenido por si tu función usa el fallback desde env
+          GSERVICE_CREDENTIALS_JSON_CONTENT: ${{ secrets.GSERVICE_CREDENTIALS_JSON_CONTENT }}
         run: |
           python Desvios-operativos/Desvios.py
