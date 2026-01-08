@@ -50,33 +50,20 @@ jobs:
           GSERVICE_CREDENTIALS_JSON_CONTENT: ${{ secrets.GSERVICE_CREDENTIALS_JSON_CONTENT }}
         run: |
           set -euo pipefail
-          SCRIPT_DIR="${SCRIPT_DIR:-Desvios}"
-
-          # Si el secret no está, salimos sin error
+          SCRIPT_DIR="Desvios-operativos"
+          JSON_FILENAME="charged-muse-426100-k1-372cb941772b.json"
+      
           if [ -z "${GSERVICE_CREDENTIALS_JSON_CONTENT:-}" ]; then
-            echo "GSERVICE_CREDENTIALS_JSON_CONTENT vacío; omitiendo materialización."
-            exit 0
+            echo "::error::GSERVICE_CREDENTIALS_JSON_CONTENT vacío o no definido."
+            exit 1
           fi
-
-          # Cargar variables del .env (puede traer GSERVICE_CREDENTIALS_JSON)
-          set -a; source .env || true; set +a
-
-          # Ruta por defecto si no está en .env
-          REL_PATH="${GSERVICE_CREDENTIALS_JSON:-credenciales/service-account.json}"
-          echo "GSERVICE_CREDENTIALS_JSON=$REL_PATH" >> "$GITHUB_ENV"
-
-          # Absoluta vs relativa
-          if [[ "$REL_PATH" = /* ]]; then
-            DEST="$REL_PATH"
-          else
-            DEST="$SCRIPT_DIR/$REL_PATH"
-          fi
-
+      
+          DEST="$SCRIPT_DIR/$JSON_FILENAME"
           echo "Escribiendo credenciales en: $DEST"
           mkdir -p "$(dirname "$DEST")"
           printf '%s' "${GSERVICE_CREDENTIALS_JSON_CONTENT}" > "$DEST"
           chmod 600 "$DEST"
-
+      
           echo "Verificación:"
           ls -la "$(dirname "$DEST")"
           test -f "$DEST" || (echo "::error::JSON no encontrado en $DEST" && exit 1)
