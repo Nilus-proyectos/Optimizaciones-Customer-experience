@@ -45,27 +45,35 @@ jobs:
           ${{ secrets.ENV_RECLAMOS }}
           ENV
 
-      - name: Materializar credenciales de Google desde secret
-        env:
-          GSERVICE_CREDENTIALS_JSON_CONTENT: ${{ secrets.GSERVICE_CREDENTIALS_JSON_CONTENT }}
-        run: |
-          set -euo pipefail
-          set -a; source .env; set +a
+- name: Materializar credenciales de Google desde secret
+  env:
+    GSERVICE_CREDENTIALS_JSON_CONTENT: ${{ secrets.GSERVICE_CREDENTIALS_JSON_CONTENT }}
+  run: |
+    set -euo pipefail
+    set -a; source .env || true; set +a
 
-          if [[ "$GSERVICE_CREDENTIALS_JSON" = /* ]]; then
-            DEST="$GSERVICE_CREDENTIALS_JSON"
-          else
-            DEST="$SCRIPT_DIR/$GSERVICE_CREDENTIALS_JSON"
-          fi
+    # Si no definiste GSERVICE_CREDENTIALS_JSON en ENV_RECLAMOS, usamos una ruta por defecto
+    DEFAULT_REL_PATH="credenciales/service-account.json"
+    REL_PATH="${GSERVICE_CREDENTIALS_JSON:-$DEFAULT_REL_PATH}"
 
-          echo "Escribiendo credenciales en: $DEST"
-          mkdir -p "$(dirname "$DEST")"
-          printf '%s' "${GSERVICE_CREDENTIALS_JSON_CONTENT}" > "$DEST"
-          chmod 600 "$DEST"
+    # Exportamos para los pasos siguientes (y para el script)
+    echo "GSERVICE_CREDENTIALS_JSON=$REL_PATH" >> "$GITHUB_ENV"
 
-          echo "Verificación:"
-          ls -la "$(dirname "$DEST")"
-          test -f "$DEST" || (echo "::error::JSON no encontrado en $DEST" && exit 1)
+    # Si es absoluta, respetamos; si es relativa, la escribimos dentro de ReclamosAI/
+    if [[ "$REL_PATH" = /* ]]; then
+      DEST="$REL_PATH"
+    else
+      DEST="ReclamosAI/$REL_PATH"
+    fi
+
+    echo "Escribiendo credenciales en: $DEST"
+    mkdir -p "$(dirname "$DEST")"
+    printf '%s' "${GSERVICE_CREDENTIALS_JSON_CONTENT}" > "$DEST"
+    chmod 600 "$DEST"
+
+    echo "Verificación:"
+    ls -la "$(dirname "$DEST")"
+    test -f "$DEST" || (echo "::error::JSON no encontrado en $DEST" && exit 1)
 
       - name: Run script
         run: |
