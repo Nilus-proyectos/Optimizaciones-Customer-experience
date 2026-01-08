@@ -1,0 +1,8 @@
+python-dotenv
+slack_sdk
+selenium
+webdriver_manager
+gspread
+oauth2client
+pandas
+certifi
