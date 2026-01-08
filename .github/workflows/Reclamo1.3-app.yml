@@ -45,35 +45,33 @@ jobs:
           ${{ secrets.ENV_RECLAMOS }}
           ENV
 
-- name: Materializar credenciales de Google desde secret
-  env:
-    GSERVICE_CREDENTIALS_JSON_CONTENT: ${{ secrets.GSERVICE_CREDENTIALS_JSON_CONTENT }}
-  run: |
-    set -euo pipefail
-    set -a; source .env || true; set +a
+      - name: Materializar credenciales de Google desde secret
+        env:
+          GSERVICE_CREDENTIALS_JSON_CONTENT: ${{ secrets.GSERVICE_CREDENTIALS_JSON_CONTENT }}
+        run: |
+          set -euo pipefail
+          # Cargar variables del .env (por si defines GSERVICE_CREDENTIALS_JSON allí)
+          set -a; source .env || true; set +a
 
-    # Si no definiste GSERVICE_CREDENTIALS_JSON en ENV_RECLAMOS, usamos una ruta por defecto
-    DEFAULT_REL_PATH="credenciales/service-account.json"
-    REL_PATH="${GSERVICE_CREDENTIALS_JSON:-$DEFAULT_REL_PATH}"
+          # Ruta relativa por defecto si no está definida en ENV_RECLAMOS
+          REL_PATH="${GSERVICE_CREDENTIALS_JSON:-credenciales/service-account.json}"
+          echo "GSERVICE_CREDENTIALS_JSON=$REL_PATH" >> "$GITHUB_ENV"
 
-    # Exportamos para los pasos siguientes (y para el script)
-    echo "GSERVICE_CREDENTIALS_JSON=$REL_PATH" >> "$GITHUB_ENV"
+          # Si es absoluta, usar tal cual; si es relativa, escribir bajo la carpeta del script
+          if [[ "$REL_PATH" = /* ]]; then
+            DEST="$REL_PATH"
+          else
+            DEST="$SCRIPT_DIR/$REL_PATH"
+          fi
 
-    # Si es absoluta, respetamos; si es relativa, la escribimos dentro de ReclamosAI/
-    if [[ "$REL_PATH" = /* ]]; then
-      DEST="$REL_PATH"
-    else
-      DEST="ReclamosAI/$REL_PATH"
-    fi
+          echo "Escribiendo credenciales en: $DEST"
+          mkdir -p "$(dirname "$DEST")"
+          printf '%s' "${GSERVICE_CREDENTIALS_JSON_CONTENT}" > "$DEST"
+          chmod 600 "$DEST"
 
-    echo "Escribiendo credenciales en: $DEST"
-    mkdir -p "$(dirname "$DEST")"
-    printf '%s' "${GSERVICE_CREDENTIALS_JSON_CONTENT}" > "$DEST"
-    chmod 600 "$DEST"
-
-    echo "Verificación:"
-    ls -la "$(dirname "$DEST")"
-    test -f "$DEST" || (echo "::error::JSON no encontrado en $DEST" && exit 1)
+          echo "Verificación:"
+          ls -la "$(dirname "$DEST")"
+          test -f "$DEST" || (echo "::error::JSON no encontrado en $DEST" && exit 1)
 
       - name: Run script
         run: |
