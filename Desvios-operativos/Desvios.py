@@ -235,14 +235,23 @@ def extraer_id(texto):
 
 df["datos_pedido"] = df["datos_pedido"].apply(extraer_id)
 
-# Fecha objetivo (ayer por defecto) en TZ configurada
-now_tz = datetime.now(ZoneInfo(TIMEZONE))
-objetivo = (now_tz - timedelta(days=DAYS_OFFSET)).date()
-df_target = df[df["fecha"].dt.date == objetivo]
+# Limpieza de datos nulos primero
+df.dropna(subset=["fecha"], inplace=True)
 
-print(f"📆 Fecha actual ({TIMEZONE}): {now_tz.strftime('%Y-%m-%d %H:%M:%S')}")
-print(f"📆 Fecha filtrada (target): {objetivo}")
-print(f"🔎 Filas encontradas: {len(df_target)}")
+# Convierte la columna fecha a datetime real
+df["fecha"] = pd.to_datetime(df["fecha"], dayfirst=True, errors="coerce")
+
+# Obtener la fecha de ayer como objeto datetime sin hora
+ayer = (datetime.now() - timedelta(days=1)).date()
+print("Ayer:", ayer)
+print("Fechas únicas en df:", df["fecha"].dt.date.unique())
+
+# Filtrar por fecha usando .dt.date
+df_ayer = df[df["fecha"].dt.date == ayer]
+
+print(f"📆 Fecha actual: {datetime.now().strftime('%d/%m/%Y')}")
+print(f"📆 Fecha filtrada (ayer): {ayer}")
+print(f"🔎 Filas encontradas: {len(df_ayer)}")
 
 # Filtrar tipo de desvío
 df_target = df_target[df_target["type_desvio"].isin(["faltante", "faltante_parcial"])]
