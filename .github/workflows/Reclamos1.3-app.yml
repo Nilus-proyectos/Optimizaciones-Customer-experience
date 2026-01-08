@@ -55,13 +55,17 @@ jobs:
           if [[ "$GSERVICE_CREDENTIALS_JSON" = /* ]]; then
             DEST="$GSERVICE_CREDENTIALS_JSON"
           else
-            DEST="Reclamos/$GSERVICE_CREDENTIALS_JSON"
+            DEST="$SCRIPT_DIR/$GSERVICE_CREDENTIALS_JSON"
           fi
 
           echo "Escribiendo credenciales en: $DEST"
           mkdir -p "$(dirname "$DEST")"
           printf '%s' "${GSERVICE_CREDENTIALS_JSON_CONTENT}" > "$DEST"
           chmod 600 "$DEST"
+
+          echo "Verificación:"
+          ls -la "$(dirname "$DEST")"
+          test -f "$DEST" || (echo "::error::JSON no encontrado en $DEST" && exit 1)
 
       - name: Run script
         run: |
