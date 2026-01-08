@@ -36,7 +36,7 @@ jobs:
           if [ -f "$SCRIPT_DIR/requirements.txt" ]; then
             pip install -r "$SCRIPT_DIR/requirements.txt"
           else
-            pip install python-dotenv pandas selenium webdriver_manager gspread oauth2client requests backports.zoneinfo
+            pip install python-dotenv pandas selenium webdriver_manager gspread oauth2client requests
           fi
 
       - name: Create .env from secret (ENV_DESVIOS)
