@@ -109,7 +109,7 @@ def click_button(driver, selector, by=By.CSS_SELECTOR, wait_time=10):
         button.click()
         return True
     except Exception as e:
-        print(f"❌ Error al hacer clic en el selector '{selector}': {e}")
+        print(f"❌ Error al hacer clic en el selector '{selector}'")
         return False
 
 def procesar_pedido(driver, datos_pedido, producto_buscado, cantidad_deseada):
@@ -184,7 +184,7 @@ def procesar_pedido(driver, datos_pedido, producto_buscado, cantidad_deseada):
 
         print(f"✅ Pedido {datos_pedido} procesado con éxito.")
     except Exception as e:
-        msg = f"❌ Error procesando el pedido {datos_pedido}: {e}"
+        msg = f"❌ Error procesando el pedido {datos_pedido}"
         print(msg)
         enviar_notificacion_slack(msg)
 
