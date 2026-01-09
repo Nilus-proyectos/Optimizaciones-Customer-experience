@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 16,22 * * *"   # 13:00 y 19:00 ART
-    - cron: "50 2 * * *"      # 23:50 ART (02:50 UTC del día siguiente)
+    - cron: "11 2 * * *"      # 23:50 ART (02:50 UTC del día siguiente)
 
 permissions:
   contents: read
